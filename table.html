@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table</title>
+    
+    <link rel="stylesheet" type="text/css" href= "//cdn.datatables.net/2.2.1/css/dataTables.dataTables.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+    integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/2.2.1/js/dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        .container {
+            margin: 20px;
+        }
+        #gdrsel {
+            margin: 30px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th, .table td {
+            padding: 10px;
+            text-align: left;
+        }
+        .table th {
+            background-color: #f9f9f9;
+        }
+        img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #2d05e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <label for="gender">Gender</label>
+        <select name="gender" id="gdrsel" title="Select Gender">
+            <option value="select" >All</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="others">Others</option>
+        </select>
+        
+        <button id="downloadBtn">Download Excel</button>
+        
+        <table class="table" border="1">
+            <thead>
+                <tr>
+                    <th>Profile</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Gender</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+            
+
+        $(document).ready(function(){
+            $.getJSON("assets/MOCK_DATA.json", function(data){
+                var table = $(".table tbody");
+                var allData = data;
+
+    
+                function displayData(filteredData) {
+                    table.empty();
+                    $.each(filteredData, function(key, value){
+                        var row = "<tr>";
+                        row += "<td><img src='" + value.profile + "' class='profile-img' onerror='this.src=\"default-avatar.png\"'></td>";
+                        row += "<td>" + value.first_name + ' ' + value.last_name + "</td>";
+                        row += "<td>" + value.email + "</td>";
+                        row += "<td>" + value.gender + "</td>";
+                        row += "</tr>";
+                        table.append(row);
+                    });
+                }
+
+                
+                displayData(allData);
+
+                $('.table').DataTable();
+
+        
+                $('#gdrsel').change(function(){
+                    var selectedGender = $(this).val();
+                    if (selectedGender == "select") {
+                        displayData(allData);
+                    } else {
+                        var filteredData = allData.filter(function(item){
+                            return item.gender.toLowerCase() == selectedGender;
+                        });
+                        displayData(filteredData);
+                    }
+                });
+
+
+                function convertJsonToExcel() {
+                    const worksheet = XLSX.utils.json_to_sheet(allData);
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+                    XLSX.writeFile(workbook, "data.xlsx");
+                }
+
+            
+                $('#downloadBtn').click(function(){
+                    convertJsonToExcel();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
